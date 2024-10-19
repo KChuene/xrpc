@@ -6,7 +6,7 @@ allows issuing os commands to the local host directly.
 1. `-host` - The remote host to issue RPC calls to.
 2. `-p`    - The port to connect to on the remote host.
 
-The target is then interpreted as 'http://{host}:{p}/'.
+The target is then interpreted as `http://{-host}:{-p}/`.
 
 ## Use example
 ```
