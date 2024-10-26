@@ -2,7 +2,12 @@
 import sys
 import requests as req
 import os
-from xmlrpc.client import ServerProxy
+import shlex
+import xmlrpc.client as xc
+
+fixed_params = {}
+global_call = None
+split_input = False
 
 def bye(msg = "Terminating...", show_help = True):
   print(msg)
@@ -47,17 +52,41 @@ def isnumber(n_str):
    return True
 
 def parse_cmd(cmd_str):
-   argv = cmd_str.split(' ')
+   argv = shlex.split(cmd_str)
+   if not argv:
+      return None, []
+
+   elif len(argv)==1:
+      return argv[0], []
+
+   elif not split_input:
+      return argv[0], [' '.join(argv[1:])]
+
+   # Type conversion before returning
    for indx in range(0, len(argv)):
       if isnumber(argv[indx]):
          argv[indx] = int(argv[indx]) if argv[indx].isnumeric() else float(argv[indx]) # int() if whole number else float()
 
-   if not argv:
-      return None, None
-   elif len(argv)==1:
-      return argv[0], None
-   else:
-      return argv[0], argv[1:]
+   return argv[0], argv[1:]
+
+def join_fixed_to_varargs(argv):
+   # from [var, var, var] and [fixed, fixed] build [fixed, var, var, fixed, var]
+   # place fixed at their positions and fill the gaps with var
+   length = len(fixed_params or []) + len(argv or [])
+   if fixed_params and length < max(fixed_params):
+      print(f"Insufficient params. Expecting {max(fixed_params) - length} more to join with fixed params.")
+      return argv
+
+   result = []
+   curr_argv_index = 0
+   for param in range(1, length+1):
+      if param in fixed_params:
+         result.append(fixed_params[param])
+      else:
+         result.append(argv[curr_argv_index])
+         curr_argv_index += 1
+
+   return result
 
 def wrapper(func, args):
    if func and args:
@@ -68,40 +97,97 @@ def wrapper(func, args):
       print(f"Function: {func}")
       return func()
 
-def reqbody_to_xml():
-   pass
+def list_fixed_params():
+   param_nums = list(fixed_params.keys())
+   param_nums.sort()
+   for param in param_nums:
+      print(f"{param}: {fixed_params[param]}")
 
-def xml_to_reqbody():
-   pass
+def set_param(argv):
+   if len(argv) == 0:
+      list_fixed_params()
+      return
+   elif len(argv) < 2:
+      print("Both parameter number and value are required.")
+      return
 
-def exec_shell(cmd_arr):
+   if not argv[0].isnumeric():
+      print("Invalid parameter number.")
+      return
+
+   param = int(argv[0])
+   if param > 0 and param < 10:
+      if isnumber(argv[1]):
+         fixed_params[param] = int(argv[1]) if argv[1].isnumeric() else float(argv[1])
+      else:
+         fixed_params[param] = argv[1]
+
+def lock_call(argv):
+   if len(argv) < 1:
+      print("Expected function name.")
+      return
+
+   global global_call
+   global_call = argv[0]
+
+def unlock_call(_ = None):
+   global global_call
+   global_call = None
+
+def set_split_input(status):
+   global split_input
+   print(f"Split => {status}")
+   split_input = status
+
+def configure(cmd_str):
+   args = shlex.split(cmd_str)
+   config = {
+      "param": set_param,
+      "lock": lock_call,
+      "unlock": unlock_call,
+      "join": lambda _=None: set_split_input(True),
+      "split": lambda _=None: set_split_input(False)
+   }
+
+   if args[0] in config:
+      config[args[0]](args[1:])
+   else:
+      print("Unrecognized subsystem command.")
+
+def exec_shell(cmd_str):
    os.system(cmd_str)
 
 if __name__=="__main__":
-  try:
-    host = safe_read("-host", sys.argv)
-    port = safe_read("-p", sys.argv)
+   host = safe_read("-host", sys.argv)
+   port = safe_read("-p", sys.argv)
 
-    # TODO Test connection
+   # TODO Test connection
 
-    print(f"Target: http://{host}:{port}/")
-    proxy = ServerProxy(f"http://{host}:{port}/")
-    while True:
-      cmd_str = input("cmd > ").strip()
+   proxy = xc.ServerProxy(f"http://{host}:{port}/")
+   print(f"Target: http://{host}:{port}/")
+
+   while True:
+      try:
+        cmd_str = input(f"cmd ({global_call})> " if global_call else "cmd > ").strip()
       
-      if cmd_str:
-        if cmd_str.startswith("! "):
-           exec_shell(cmd_str[2:])
-           continue
+        if cmd_str:
+          if cmd_str.startswith("! "):
+             exec_shell(cmd_str[2:])
+          elif cmd_str.startswith(": "):
+             configure(cmd_str[2:])
+          else:
+             cmd, args = parse_cmd(f"{global_call} {cmd_str}" if global_call else cmd_str) # Prefix global call
+             args = join_fixed_to_varargs(args)
 
-        cmd, args = parse_cmd(cmd_str)
-        run = getattr(proxy, cmd)
-        print(wrapper(run, args))
-        
-  except KeyboardInterrupt:
-    bye("\nCtrl-C", False)
+             run = getattr(proxy, cmd)
+             print(wrapper(run, args))
+      except xc.Fault as fault:
+        print(f"Error: {fault}")
 
-  except Exception as ex:
-    raise ex
+      except KeyboardInterrupt:
+        bye("\nCtrl-C", False)
+
+      except Exception as ex:
+        raise ex
   
   #TODO Catch xmlrpc.client exceptions
