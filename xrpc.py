@@ -4,7 +4,7 @@ import requests as req
 import os
 import shlex
 import xmlrpc.client as xc
-import discvr as dcv
+import lib.discvr as dcv
 
 fixed_params = {}
 discoverer = None # Additional module to run bruteforcing
@@ -34,7 +34,7 @@ def safe_read(opt, argv):
   else:
     bye("Insufficient args.")
     
-  return "0"
+  return "\x00"
 
 def isnumber(n_str):
    for c in n_str:
@@ -54,6 +54,14 @@ def isnumber(n_str):
          return False
 
    return True
+
+def isip(ipv4address : str):
+   isipnum = lambda x: len(x) in range(1,4) and x.isnumeric() and (not x.startswith('0') if len(x)>1 else True)
+   segments = ipv4address.split('.')
+   if len(segments) != 4:
+      return False
+   else:
+      return isipnum(segments[0]) and isipnum(segments[1]) and isipnum(segments[2]) and isipnum(segments[3])
 
 def parse_cmd(cmd_str):
    argv = shlex.split(cmd_str)
@@ -182,8 +190,11 @@ def exec_shell(cmd_str):
    os.system(cmd_str)
 
 if __name__=="__main__":
-   host = "192.168.56.128" #safe_read("-host", sys.argv)
-   port = 8000 #safe_read("-p", sys.argv)
+   host = safe_read("-host", sys.argv)
+   port = safe_read("-p", sys.argv)
+
+   if not isip(host) or not port.isnumeric():
+      bye("Invalid address format or port", False)
 
    # TODO Test connection
 
@@ -213,6 +224,3 @@ if __name__=="__main__":
 
       except Exception as ex:
         raise ex
-  
-  #TODO Catch xmlrpc.client exceptions
-  #TODO Test connection to host:port

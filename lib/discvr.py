@@ -1,5 +1,5 @@
 import xmlrpc.client as xc
-import os
+import time
 from pathlib import Path
 
 
@@ -25,7 +25,7 @@ class Discover:
 
     def try_call(self, proxy, method, delay):
         if delay:
-            os.system("ping %s %s 127.0.0.1 >nul" % ("-n" if os.name == "nt" else "-c", int(delay)+1))
+            time.sleep(delay)
 
         success = True
         try:
@@ -57,40 +57,38 @@ class Discover:
             print(method)
 
     def discover(self, proxy, path, delay):
-        try:
-            with open(path, "r") as wlist:
-                lcount = 0
-                for line in wlist:
-                    lcount += 1
+        with open(path, "r") as wlist:
+            lcount = 0
+            for line in wlist:
+                lcount += 1
 
-                wlist.seek(0)
-                priv_line_len = currline = 0
-                for line in wlist:
-                    currline += 1
-                    line = line.strip() 
+            wlist.seek(0)
+            priv_line_len = currline = 0
+            for line in wlist:
+                currline += 1
+                line = line.strip() 
 
-                    progress_str = f"{line} ({currline}/{lcount})"
-                    print(f"\r{' '*priv_line_len}\r{progress_str}", end="") # Fancy-ish output
+                progress_str = f"{line} ({currline}/{lcount})"
+                print(f"\r{' '*priv_line_len}\r{progress_str}", end="") # Fancy-ish output
 
-                    if self.try_call(proxy, line, delay):
-                        print() # Leaves line on display
+                if self.try_call(proxy, line, int(delay)):
+                    print() # Leaves line on display
 
-                    priv_line_len = len(progress_str) # Fancy-ish output
-                
-                print(f"\r{' '*priv_line_len}")
-        except KeyboardInterrupt:
-            print("\n") # Stop Discover but don't stop program
+                priv_line_len = len(progress_str) # Fancy-ish output
+            
+            print(f"\r{' '*priv_line_len}")
+        print()
 
     def run(self, wordlist, delay):
         proxy = xc.ServerProxy(f"http://{self.rhost}:{self.rport}/")
+        #TODO Connection test host:port
         wpath = Path(wordlist)
 
         if not wpath.exists():
             print("Wordlist file not found.")
             return
 
-        print(f"Discovering {wpath} delay by {delay}")
+        print(f"< Discovering {wpath} delay by {delay} >")
         self.exec_status = self.status_rst(wpath, delay)
         self.discover(proxy, wpath, delay)
 
-#TODO Connection test host:port
