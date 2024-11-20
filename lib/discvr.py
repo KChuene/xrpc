@@ -33,7 +33,7 @@ class Discover:
             self.log_success(method) # Save for shw_status later
 
         except xc.Fault as fault:
-            if "exceptions.TypeError" in str(fault): # TypeError, method exist but incorrect args
+            if "TypeError" in str(fault): # TypeError, method exist but incorrect args
                 self.log_success(method)
             else:
                 success = False

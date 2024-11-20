@@ -3,6 +3,7 @@ xtcsid
 xtest
 xtframework
 xtree2b
+g
 xtreme
 xtreme3
 xwiki
@@ -20,6 +21,7 @@ yabbfiles
 yabbhelp
 yabbimages
 yabbse
+shell
 yaco
 yaf
 yahoo

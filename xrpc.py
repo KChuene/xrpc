@@ -3,6 +3,7 @@ import sys
 import requests as req
 import os
 import shlex
+import traceback
 import xmlrpc.client as xc
 import lib.discvr as dcv
 
@@ -54,6 +55,9 @@ def isnumber(n_str):
          return False
 
    return True
+
+def isport(portno : str):
+   return portno.isnumeric() and int(portno) in range(0, 65536)
 
 def isip(ipv4address : str):
    isipnum = lambda x: len(x) in range(1,4) and x.isnumeric() and (not x.startswith('0') if len(x)>1 else True)
@@ -193,7 +197,7 @@ if __name__=="__main__":
    host = safe_read("-host", sys.argv)
    port = safe_read("-p", sys.argv)
 
-   if not isip(host) or not port.isnumeric():
+   if not isip(host) or not isport(port):
       bye("Invalid address format or port", False)
 
    # TODO Test connection
@@ -218,9 +222,12 @@ if __name__=="__main__":
              print(wrapper(run, args))
       except xc.Fault as fault:
         print(f"Error: {fault}")
-         
+
+      except OSError:
+        print("Error: System error, check target address")
+
       except KeyboardInterrupt:
         bye("\nCtrl-C", False)
 
-      except Exception as ex:
-        raise ex
+      except Exception:
+        traceback.print_exc()
