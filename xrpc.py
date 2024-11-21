@@ -6,6 +6,7 @@ import shlex
 import traceback
 import xmlrpc.client as xc
 import lib.discvr as dcv
+import lib.help as help
 
 fixed_params = {}
 discoverer = None # Additional module to run bruteforcing
@@ -121,10 +122,7 @@ def list_fixed_params():
 
 def set_param(argv):
    global fixed_params
-   if argv==None:
-      fixed_params = {}
-      return
-   elif len(argv) == 0:
+   if len(argv) == 0:
       list_fixed_params()
       return
    elif len(argv) < 2:
@@ -141,6 +139,22 @@ def set_param(argv):
          fixed_params[param] = int(argv[1]) if argv[1].isnumeric() else float(argv[1])
       else:
          fixed_params[param] = argv[1]
+
+def rst_param(argv):
+   global fixed_params
+   if not argv:
+      fixed_params.clear()
+      return
+   
+   if len(argv) < 2:
+      help.help("paramrst", "Insufficient arguments")
+      return
+
+   elif not argv[0].isnumeric():
+      help.help("paramrst", "Invalid parameter number")
+      return
+   
+   fixed_params.pop(int(argv[0]), None)
 
 def lock_call(argv):
    if len(argv) < 1:
@@ -167,22 +181,26 @@ def disc(args):
    if not args:
       discoverer.shw_status()
       return
-   elif len(args) < 2 or not args[1].isnumeric():
+   elif len(args) < 2 or not isnumber(args[1]):
       print("Provide appropriate arguments.")
       return
 
    discoverer.run(*args)
 
+def show_help(cmd):
+   help.help(cmd[0]) if len(cmd)>0 and cmd[0].strip() else help.helpall()
+
 def configure(cmd_str):
    args = shlex.split(cmd_str)
    config = {
       "param": set_param,
-      "paramrst": lambda _=None: set_param(None),
+      "paramrst": rst_param,
       "lock": lock_call,
       "unlock": unlock_call,
       "join": lambda _=None: set_split_input(False),
       "split": lambda _=None: set_split_input(True),
-      "disc": disc
+      "disc": disc,
+      "help": show_help
    }
 
    if args[0] in config:

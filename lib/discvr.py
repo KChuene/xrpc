@@ -71,7 +71,7 @@ class Discover:
                 progress_str = f"{line} ({currline}/{lcount})"
                 print(f"\r{' '*priv_line_len}\r{progress_str}", end="") # Fancy-ish output
 
-                if self.try_call(proxy, line, int(delay)):
+                if self.try_call(proxy, line, float(delay)):
                     print() # Leaves line on display
 
                 priv_line_len = len(progress_str) # Fancy-ish output
