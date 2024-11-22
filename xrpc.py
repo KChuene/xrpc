@@ -126,7 +126,7 @@ def set_param(argv):
       list_fixed_params()
       return
    elif len(argv) < 2:
-      print("Both parameter number and value are required.")
+      help.help("param", "Both parameter number and value are required.")
       return
 
    if not argv[0].isnumeric():
@@ -146,19 +146,18 @@ def rst_param(argv):
       fixed_params.clear()
       return
    
-   if len(argv) < 2:
-      help.help("paramrst", "Insufficient arguments")
+   if not argv[0].isnumeric():
+      print("Invalid parameter number.")
       return
-
-   elif not argv[0].isnumeric():
-      help.help("paramrst", "Invalid parameter number")
+   
+   elif not int(argv[0]) in fixed_params:
       return
    
    fixed_params.pop(int(argv[0]), None)
 
 def lock_call(argv):
    if len(argv) < 1:
-      print("Expected function name.")
+      help.help("lock", "Expected function name")
       return
 
    global global_call
@@ -182,7 +181,7 @@ def disc(args):
       discoverer.shw_status()
       return
    elif len(args) < 2 or not isnumber(args[1]):
-      print("Provide appropriate arguments.")
+      help.help("disc", "Provide appropriate arguments")
       return
 
    discoverer.run(*args)

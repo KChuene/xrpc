@@ -23,7 +23,7 @@ def sepfor(cmd : str):
 
 def help(cmd : str = None, msg=None):
     if cmd and not cmd in index:
-        print("No such subsystem command.")
+        print("Unrecognized subsystem command.")
         return
 
     info = index[cmd]
