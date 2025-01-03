@@ -15,8 +15,7 @@ python3 xrpc.py -host 127.0.0.1 -p 8000
 > **Hint:**
 > The `-host` option must be an IPv4 address, no names.
 
-
-### RPC and Commands
+<br>
 Procedure calls are made normally, that is the name of the procedure followed by it's parameters (space separated). But to run commands
 - `: `: Colon-space, precedes commands that difined within the script, like `help` and `join`.
 - `! `: Exclamation-space, precedes system commands to (linux, windows, etc.).
