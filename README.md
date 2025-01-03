@@ -1,5 +1,5 @@
 # XRPC - XML Remote Procedure Call
-A wrapper script for the xmlrpc.client python module providing command-line like interaction with xml rpc servers. Inclueds some sub-commands for ease of use and <br>
+A wrapper script for the xmlrpc.client python module providing command-line like interaction with xml rpc servers. Inclueds some sub-commands for ease of use and 
 a lite bruteforcer for discovering rpc functions.
 
 ## Structure
@@ -14,6 +14,7 @@ python3 xrpc.py -host 127.0.0.1 -p 8000
 
 > **Hint:**
 > The `-host` option must be an IPv4 address, no names.
+
 
 ### RPC and Commands
 Procedure calls are made normally, that is the name of the procedure followed by it's parameters (space separated). But to run commands
@@ -35,7 +36,7 @@ split    - Undo the effect of 'join'
 disc     - Run the simple bruteforcer (error-based) to discover hidden function calls
 ```
 
-***get help for specific command**
+**get help for specific command**
 ```
 : help disc
 ```
