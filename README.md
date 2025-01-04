@@ -66,7 +66,7 @@ Python 3.11.9
 
 **make procudure call**
 ```
-g
+xrpc> g
 ```
 ```
 Function: <xmlrpc.client._Method object at 0x0000020AE732D6D0>
