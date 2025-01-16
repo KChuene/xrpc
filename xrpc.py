@@ -1,26 +1,29 @@
 #!/bin/python3
 import sys
-import requests as req
 import os
 import shlex
-import traceback
 import xmlrpc.client as xc
+
 import lib.discvr as dcv
 import lib.help as help
+
+from lib.colors import Color as clr, Colors as clrs
+from lib.run import Run
 
 fixed_params = {}
 discoverer = None # Additional module to run bruteforcing
 global_call = None
 split_input = True
-host = "127.0.0.1"
-port = 8000
+prefix, prefixall = None
+suffix, suffixall = None
+url = "http://127.0.0.1:8000"
 
 def bye(msg = "Terminating...", show_help = True):
   print(msg)
   
   if show_help:
     print()
-    print("Usage: xmlrpc.py -host localhost -p 8000")
+    print("Usage: xrpc.py -url http://localhost:80/")
   
   sys.exit()
 
@@ -56,17 +59,6 @@ def isnumber(n_str):
          return False
 
    return True
-
-def isport(portno : str):
-   return portno.isnumeric() and int(portno) in range(0, 65536)
-
-def isip(ipv4address : str):
-   isipnum = lambda x: len(x) in range(1,4) and x.isnumeric() and (not x.startswith('0') if len(x)>1 else True)
-   segments = ipv4address.split('.')
-   if len(segments) != 4:
-      return False
-   else:
-      return isipnum(segments[0]) and isipnum(segments[1]) and isipnum(segments[2]) and isipnum(segments[3])
 
 def parse_cmd(cmd_str):
    argv = shlex.split(cmd_str)
@@ -172,10 +164,23 @@ def set_split_input(status):
    split_input = status
    print(f"split => {split_input}")
 
+def string_wrap(preppend : str = None, preppendall : str = None, append : str = None, appendall : str = None):
+   global prefix, prefixall
+   global suffix, suffixall
+   
+   prefix = preppend if preppend and preppend.strip() else None
+   prefixall = preppendall if preppendall and preppendall.strip() else None
+   suffix = append if append and append.strip() else None
+   suffixall = appendall if appendall and appendall.strip() else None
+    
+
+def apply_wrap(cmdstr : str):
+   return f"{prefixall or ''}{prefix or ''}{cmdstr}{suffix or ''}{suffixall or ''}".strip()
+
 def disc(args):
    global discoverer
    if not discoverer:
-      discoverer = dcv.Discover(host, port)
+      discoverer = dcv.Discover(url)
 
    if not args:
       discoverer.shw_status()
@@ -199,7 +204,11 @@ def configure(cmd_str):
       "join": lambda _=None: set_split_input(False),
       "split": lambda _=None: set_split_input(True),
       "disc": disc,
-      "help": show_help
+      "help": show_help,
+      "prefix-cmd": lambda value: string_wrap(preppend= value),
+      "prefix": lambda value: string_wrap(preppendall= value),
+      "suffix": lambda value: string_wrap(append= value),
+      "suffix-cmd": lambda value: string_wrap(appendall= value)
    }
 
    if args[0] in config:
@@ -210,20 +219,8 @@ def configure(cmd_str):
 def exec_shell(cmd_str):
    os.system(cmd_str)
 
-if __name__=="__main__":
-   host = safe_read("-host", sys.argv)
-   port = safe_read("-p", sys.argv)
-
-   if not isip(host) or not isport(port):
-      bye("Invalid address format or port", False)
-
-   # TODO Test connection
-
-   proxy = xc.ServerProxy(f"http://{host}:{port}/")
-   print(f"Target: http://{host}:{port}/")
-
-   while True:
-      try:
+def main():
+    while True:
         cmd_str = input(f"xrpc ({global_call})> " if global_call else "xrpc > ").strip()
       
         if cmd_str:
@@ -237,14 +234,20 @@ if __name__=="__main__":
 
              run = getattr(proxy, cmd)
              print(wrapper(run, args))
-      except xc.Fault as fault:
-        print(f"Error: {fault}")
 
-      except OSError:
-        print("Error: System error, check target address")
+if __name__=="__main__":
+   url = safe_read("-url", sys.argv)
 
-      except KeyboardInterrupt:
-        bye("\nCtrl-C", False)
+   proxy = xc.ServerProxy(url)
+   print(f"Target: {url}")
 
-      except Exception:
-        traceback.print_exc()
+   Run.reg([xc.Fault, OSError, Exception])
+   Run.run(main, ()).onerror(
+      KeyboardInterrupt,
+      bye, ("\nCtrl-C", False)
+
+   ).onerror(
+      None,
+      print, (f"Error: {Run.error}")
+   )
+

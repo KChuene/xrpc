@@ -4,9 +4,8 @@ from pathlib import Path
 
 
 class Discover:
-    def __init__(self, rhost, rport):
-        self.rhost = rhost
-        self.rport = rport
+    def __init__(self, url):
+        self.url = url
         self.exec_status = {}
 
     def status_rst(self, wlist, delay):
@@ -80,8 +79,8 @@ class Discover:
         print()
 
     def run(self, wordlist, delay):
-        proxy = xc.ServerProxy(f"http://{self.rhost}:{self.rport}/")
-        #TODO Connection test host:port
+        proxy = xc.ServerProxy(self.url)
+        #TODO Connection to url
         wpath = Path(wordlist)
 
         if not wpath.exists():
