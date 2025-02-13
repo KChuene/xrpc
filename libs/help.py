@@ -1,3 +1,5 @@
+from libs.colors import Color
+
 index = {
     "param": ["<number> <value>", 
               "Set a global parameter for procedure calls"],
@@ -17,13 +19,15 @@ index = {
              "Run the simple bruteforcer (error-based) to discover hidden function calls"]
 } 
 
+clr = Color.color
+
 def sepfor(cmd : str):
     # Compute output separator by taking the length of the longest command as a base
     return f"{' '*(8 - len(cmd) + 1)}- "
 
 def help(cmd : str = None, msg=None):
     if cmd and not cmd in index:
-        print("Unrecognized subsystem command.")
+        print(f"({clr('!')}) Unrecognized subsystem command.")
         return
 
     info = index[cmd]

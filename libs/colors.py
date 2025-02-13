@@ -26,12 +26,15 @@ class Color:
             Color.bgcolor = bgcolor
     
     @staticmethod
-    def mapfg(seq : list[str], fgcolors : list[Colors]):
+    def mapfg(seq : list[str], fgcolors : list[Colors], repeat=False):
         index = 0
         for elem in seq:
             if fgcolors and index < len(fgcolors):
                 Color.map[elem] = fgcolors[index]
 
+            elif fgcolors and repeat:
+                Color.map[elem] = fgcolors[len(fgcolors) - 1]
+                
             elif Color.fgcolor:
                 Color.map[elem] = Color.fgcolor
 

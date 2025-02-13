@@ -9,7 +9,7 @@ class Run:
         for error in errorlst:
             Run.errorlst.append(error)
 
-    def run(function, args):
+    def run(function, args = ()):
         try:
             Run.out = None
             if args:
@@ -17,7 +17,7 @@ class Run:
             else:
                 Run.out = function()
 
-        except Exception as ex:
+        except (KeyboardInterrupt, Exception) as ex:
             Run.error = ex
 
         return Run
@@ -29,7 +29,7 @@ class Run:
             
         return False
 
-    def onerror(errortype : type, function, args, debug : bool = False):
+    def onerror(errortype : type, function, args = (), debug : bool = False):
         if not Run.error:
             return Run
         
