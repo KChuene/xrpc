@@ -1,31 +1,3 @@
-def join_fixed_to_varargs(argv):
-   # from [var, var, var] and [fixed, fixed] build [fixed, var, var, fixed, var]
-   # place fixed at their positions and fill the gaps with var
-   length = len(fixed_params or []) + len(argv or [])
-   if fixed_params and length < max(fixed_params):
-      print(f"({clr('!')}) Insufficient params. Expecting {max(fixed_params) - length} more to join with fixed params.")
-      return argv
-
-   result = []
-   curr_argv_index = 0
-   for param in range(1, length+1):
-      if param in fixed_params:
-         result.append(fixed_params[param])
-      else:
-         result.append(argv[curr_argv_index])
-         curr_argv_index += 1
-
-   return result
-
-def wrapper(func, args):
-   if func and args:
-      print(f"Function: {func}({args})")
-      return func(*args)
-   
-   elif func:
-      print(f"Function: {func}")
-      return func()
-
 def list_fixed_params():
    param_nums = list(fixed_params.keys())
    param_nums.sort()
@@ -67,32 +39,6 @@ def rst_param(argv):
    
    fixed_params.pop(int(argv[0]), None)
 
-def lock_call(argv):
-   if len(argv) < 1:
-      help.help("lock", f"({clr('!')}) Expected function name")
-      return
-
-   global global_call
-   global_call = argv[0]
-
-def unlock_call(_ = None):
-   global global_call
-   global_call = None
-
-def set_split_input(status):
-   global split_input
-   split_input = status
-   print(f"split => {split_input}")
-
-def string_wrap(preppend : str = None, preppendall : str = None, append : str = None, appendall : str = None):
-   global prefix, prefixall
-   global suffix, suffixall
-   
-   prefix = preppend if preppend and preppend.strip() else None
-   prefixall = preppendall if preppendall and preppendall.strip() else None
-   suffix = append if append and append.strip() else None
-   suffixall = appendall if appendall and appendall.strip() else None
-
 fixed_params = {}
 global_call = None
 split_input = True
@@ -101,36 +47,44 @@ suffix, suffixall = None, None
 
 class CmdParams:
     def __init__(self):
-        self.params = []
+        self.params = {}
 
     def inrange(self, pos: int):
-        return pos != None and pos > 1 and pos <= len(self.params)
+        return pos != None and 1 < pos <= len(self.params)
             
-    @inrange
     def add(self, pos: int, name: str, val: str):
-        if self.inrange(pos): self.params[pos or len(self.params) - 1] = {name: val}
+        if self.inrange(pos): self.params[pos or len(self.params) - 1] = [name, val]
 
     def remove(self, pos: int):
-        if self.inrange(pos): self.params.remove(self.params[pos or len(self.params) - 1])
+        if self.inrange(pos): del self.params[pos or len(self.params) - 1]
+
+    def removeall(self):
+        self.params.clear()
+
+    def list(self):
+        # 1: name = value
+        keys = sorted(self.params.keys())
+        print("\n".join(
+            f"{elem}: {' = '.join(self.params[elem])}" 
+            for elem in keys
+        ))
 
 class CmdParser:
     config = {
-       "prefix": "",
-       "lock": "",
-       "base":"",
-       "params": {},
+       "prefix": "", "lock": "", "base":"",
        "suffix": "",
+       "params": {},
        "split": False
     }
 
     # Method for subsystem commands (ie. lock, set-param)
     def reset(spec: dict):
-        for elem in spec: 
-            CmdParser.config[elem] = spec[elem]
+        CmdParser.config.update({
+            elem: spec[elem] for elem in spec if elem in CmdParser.config
+        })
 
     # from [var, var, var] and [fixed, fixed] build [fixed, var, var, fixed, var]
-    def joinp(vparams: list[str]):
-        fparams = CmdParser.config['params']
+    def joinp(vparams: list[str], fparams: dict[list]):
         fmaxpos, vlength = max(fparams), len(vparams)
 
         length = fmaxpos if fmaxpos > vlength else vlength 
@@ -146,13 +100,13 @@ class CmdParser:
         return result
 
     # Method for RPC commands; result is (cmd, [params]) fit for cmd(*params) call
-    def parse(self, cmdin: list[str]):
+    def parse(self, cmdin: list[str], fparams: dict[list]):
         config = CmdParser.config
         config['base'] = cmdin[0]
 
         command = f"{config['prefix']}{config['lock']}"
         command += config['base']
+        command += config['suffix']
 
-        params = self.joinp(cmdin[1:] if config['split'] else [' '.join(cmdin[1:])])
-        params += config['suffix']
+        params = self.joinp(cmdin[1:] if config['split'] else [' '.join(cmdin[1:])], fparams)
         return command, params

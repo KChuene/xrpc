@@ -6,6 +6,7 @@ import xmlrpc.client as xc
 import libs.help as help
 
 from urllib.parse import urlparse
+from libs.cmdparse import CmdParams, CmdParser
 from libs.colors import Color, Colors as _
 from libs.run import Run
 from libs.auxiliary import *
@@ -17,6 +18,9 @@ split_input = True
 prefix, prefixall = None, None
 suffix, suffixall = None, None
 url = "http://127.0.0.1:8000"
+
+cmdparams = CmdParams()
+cmdparser = CmdParser()
 
 clr = Color.color
 
@@ -148,6 +152,25 @@ def configure(cmd_str):
         "help": show_help,
         "prefix-cmd": lambda value: string_wrap(preppend= value), "prefix": lambda value: string_wrap(preppendall= value),
         "suffix": lambda value: string_wrap(append= value), "suffix-cmd": lambda value: string_wrap(appendall= value)
+    }
+
+    if args[0] in config:
+        config[args[0]](args[1:])
+    else:
+        print(f"({clr('!')}) Unrecognized subsystem command.")
+
+def configure(cmd_str):
+    args = shlex.split(cmd_str)
+    config = {
+        "param": lambda params: cmdparams.add(*params), 
+        "paramrst": lambda _: cmdparams.removeall(),
+        "lock": lambda param: cmdparser.reset({"lock": param}), 
+        "unlock": lambda _: cmdparser.reset({"lock": ""}),
+        "join": lambda _=None: cmdparser.reset({"split": False}), 
+        "split": lambda _=None: cmdparser.reset({"split": True}),
+        "help": show_help,
+        "prefix": lambda param: cmdparser.reset({"prefix": param}),
+        "suffix": lambda param: cmdparser.reset({"suffix": param})
     }
 
     if args[0] in config:
