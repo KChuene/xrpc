@@ -143,7 +143,7 @@ def apply_wrap(cmdstr : str):
 def show_help(cmd):
    help.help(cmd[0]) if len(cmd)>0 and cmd[0].strip() else help.helpall()
 
-def configure(cmd_str):
+def conf(cmd_str):
     args = shlex.split(cmd_str)
     config = {
         "param": set_param, "paramrst": rst_param,
@@ -162,21 +162,25 @@ def configure(cmd_str):
 def configure(cmd_str):
     args = shlex.split(cmd_str)
     config = {
-        "param": lambda params: cmdparams.add(*params), 
+        "paramlst": lambda args: cmdparams.list(),
+        "paramadd": lambda args: cmdparams.add(*args), 
         "paramrst": lambda _: cmdparams.removeall(),
-        "lock": lambda param: cmdparser.reset({"lock": param}), 
+        "lock": lambda args: cmdparser.reset({"lock": args}), 
         "unlock": lambda _: cmdparser.reset({"lock": ""}),
         "join": lambda _=None: cmdparser.reset({"split": False}), 
         "split": lambda _=None: cmdparser.reset({"split": True}),
         "help": show_help,
-        "prefix": lambda param: cmdparser.reset({"prefix": param}),
-        "suffix": lambda param: cmdparser.reset({"suffix": param})
+        "prefix": lambda args: cmdparser.reset({"prefix": args}),
+        "suffix": lambda args: cmdparser.reset({"suffix": args})
     }
 
-    if args[0] in config:
-        config[args[0]](args[1:])
+    isvalid = help.vdator(args[0])(args[1:])
+    if not isvalid:
+        print(f"({clr('!')}) Invalid command or arguments.")
     else:
-        print(f"({clr('!')}) Unrecognized subsystem command.")
+       config[args[0]](args[1:])
+       
+        
 
 def exec_shell(cmd_str):
    os.system(cmd_str)
@@ -197,6 +201,8 @@ def main():
         run = getattr(proxy, cmd)
         print(wrapper(run, args))
 
+sys.argv.append("-s")
+sys.argv.append("http://localhost:8000")
 if __name__=="__main__":
    Color.setdefault(_.MAGENTA)
    Color.mapfg(['!', 'Error', 'i', 'xrpc'], [_.RED, _.RED, _.BLUE, _.BLUE])

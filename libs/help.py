@@ -1,22 +1,27 @@
 from libs.colors import Color
 
+# cmd: [args, description, validator]
 index = {
     "param": ["<number> <value>", 
-              "Set a global parameter for procedure calls"],
+              "Set a global parameter for procedure calls",
+              lambda args: len(args) >= 3 and args[0].isnumeric()],
 
-    "paramrst": ["[<number>]", "Clear all global parameter or a specific parameter"],
+    "paramrst": ["[<number>]", "Clear all global parameter or a specific parameter",
+                 lambda _ = None: True],
 
     "lock": ["<call name>", 
-             "Useful if you don't want to specify the function to call, all the time"],
+             "Useful if you don't want to specify the function to call, all the time",
+             lambda args: len(args) >= 1],
 
-    "unlock": ["Clear the locked call"],
+    "unlock": [None, "Clear the locked call",
+               lambda _ = None: True],
 
-    "join": ["Treat input as one string (ignore spaces), usefule for locked calls that requre long strings as parameters"],
+    "join": [None,
+             "Treat input as one string (ignore spaces), usefule for locked calls that requre long strings as parameters",
+             lambda _ = None: True],
     
-    "split": ["Undo the effect of 'join'"],
-
-    "disc": ["<path/to/wordlist> <delay>", 
-             "Run the simple bruteforcer (error-based) to discover hidden function calls"]
+    "split": ["Undo the effect of 'join'",
+              lambda _ = None: True],
 } 
 
 clr = Color.color
@@ -25,22 +30,34 @@ def sepfor(cmd : str):
     # Compute output separator by taking the length of the longest command as a base
     return f"{' '*(8 - len(cmd) + 1)}- "
 
-def help(cmd : str = None, msg=None):
+# Format command help
+def oformat(cmd : str, descr: str):
+    # Compute output separator by taking the length of the longest command as a base
+    return f"{cmd}{' '*(8 - len(cmd) + 1)} - {descr}"
+
+# Return command validator
+def vdator(cmd: str):
+    return index[cmd][2] if cmd in index else False
+
+# Show help for a specific command
+def show(cmd : str = None, msg=None):
     if cmd and not cmd in index:
         print(f"({clr('!')}) Unrecognized subsystem command.")
         return
 
     info = index[cmd]
-    outmsg = msg
-
-    if not outmsg:
-        outmsg = info[0] if len(info) < 2 else info[1]
+    outmsg = msg or info[1]
 
     print(f"{outmsg}\n")
     print("Usage:")
-    print(f"\t{cmd}", info[0] if len(info) == 2 else "\x00")
+    print(f"\t{cmd}", info[0] or "\x00")
 
-def helpall():
-    for key in index:
-        info = index[key]
-        print(key, info[0] if len(info) < 2 else info[1], sep=sepfor(key))
+# Show help for all commands
+def showall():
+    print('\n'.join([
+        oformat(key, index[key][1]) 
+        for key in index
+    ]))
+    # for key in index:
+    #     info = index[key]
+    #     print(key, info[0] if len(info) < 2 else info[1], sep=sepfor(key))
