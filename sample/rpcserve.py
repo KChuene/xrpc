@@ -25,6 +25,7 @@ def shell(cmd, code):
 if __name__=="__main__":
         s = SimpleRPC(("0.0.0.0", 8000))
         print("Handle: 0.0.0.0:8000")
+        print(f"Shell Access-Code: {passcode}")
 
         s.register_function(h)
         s.register_function(g)

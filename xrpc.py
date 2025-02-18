@@ -164,7 +164,7 @@ def configure(cmdstr):
     config = {
         "paramlst": lambda _ = None: cmdparams.list(),
         "paramadd": lambda p, n, v: cmdparams.add(int(p), n, v), 
-        "paramdel": lambda p: cmdparams.remove(p),
+        "paramdel": lambda p: cmdparams.remove(int(p)),
         "paramrst": lambda _ = None: cmdparams.removeall(),
         "lock": lambda v: cmdparser.reset({"lock": v}), 
         "unlock": lambda _ = None: cmdparser.reset({"lock": ""}),
