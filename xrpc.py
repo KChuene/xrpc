@@ -162,14 +162,15 @@ def conf(cmdstr):
 def configure(cmdstr):
     args = shlex.split(cmdstr)
     config = {
-        "paramlst": lambda _=None: cmdparams.list(),
-        "paramadd": lambda p, n, v: cmdparams.add(p, n, v), 
-        "paramrst": lambda _=None: cmdparams.removeall(),
+        "paramlst": lambda _ = None: cmdparams.list(),
+        "paramadd": lambda p, n, v: cmdparams.add(int(p), n, v), 
+        "paramdel": lambda p: cmdparams.remove(p),
+        "paramrst": lambda _ = None: cmdparams.removeall(),
         "lock": lambda v: cmdparser.reset({"lock": v}), 
-        "unlock": lambda _=None: cmdparser.reset({"lock": ""}),
-        "join": lambda _=None: cmdparser.reset({"split": False}), 
-        "split": lambda _=None: cmdparser.reset({"split": True}),
-        "help": show_help,
+        "unlock": lambda _ = None: cmdparser.reset({"lock": ""}),
+        "join": lambda _ = None: cmdparser.reset({"split": False}), 
+        "split": lambda _ = None: cmdparser.reset({"split": True}),
+        "help": lambda c = None: help.show(c) if c and c.strip() else help.showall(),
         "prefix": lambda v: cmdparser.reset({"prefix": v}),
         "suffix": lambda v: cmdparser.reset({"suffix": v})
     }
@@ -204,6 +205,7 @@ def main():
 
 sys.argv.append("-s")
 sys.argv.append("http://localhost:8000")
+sys.argv.append("-dbg")
 arguments = sys.argv
 if __name__=="__main__":
    Color.setdefault(_.MAGENTA)

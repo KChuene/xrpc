@@ -2,7 +2,9 @@ from libs.colors import Color
 
 # cmd: [args, description, validator]
 index = {
-    "param": ["<number> <value>", 
+    "paramlst": [None, "List all fixed parameters set.", lambda _ = None: True],
+
+    "paramadd": ["<number> <value>", 
               "Set a global parameter for procedure calls",
               lambda args: len(args) >= 3 and args[0].isnumeric()],
 
@@ -20,8 +22,10 @@ index = {
              "Treat input as one string (ignore spaces), usefule for locked calls that requre long strings as parameters",
              lambda _ = None: True],
     
-    "split": ["Undo the effect of 'join'",
+    "split": [None, "Undo the effect of 'join'",
               lambda _ = None: True],
+
+    "help": [None, "Show help.", lambda _ = None: True]
 } 
 
 clr = Color.color
@@ -37,7 +41,7 @@ def oformat(cmd : str, descr: str):
 
 # Return command validator
 def vdator(cmd: str):
-    return index[cmd][2] if cmd in index else False
+    return index[cmd][2] if cmd in index else lambda _ = None: False
 
 # Show help for a specific command
 def show(cmd : str = None, msg=None):

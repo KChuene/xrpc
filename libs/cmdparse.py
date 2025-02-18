@@ -3,8 +3,11 @@ class CmdParams:
         self.params = {}
 
     # Bound range of pos (parameter position)
-    def inrange(self, pos: int):
-        return pos != None and 1 < pos <= len(self.params)
+    def inrange(self, pos: int, tbound: bool = False):
+        if pos == None or pos < 1:
+            return False
+        
+        return pos <= len(self.params) if tbound else True
             
     # Add a new fixed parameter
     def add(self, pos: int, name: str, val: str):
@@ -12,7 +15,7 @@ class CmdParams:
 
     # Remove an set fixed parameter
     def remove(self, pos: int):
-        if self.inrange(pos): del self.params[pos or len(self.params) - 1]
+        if self.inrange(pos, tbound=True): del self.params[pos or len(self.params) - 1]
 
     # Clear all fixed parameters
     def removeall(self):
@@ -49,7 +52,7 @@ class CmdParser:
         result = []
         for elem in range(1, length + 1):
             if elem in fparams:
-                result.append(fparams[elem - 1])
+                result.append(fparams[elem][1])
 
             elif elem <= vlength:
                 result.append(vparams[elem - 1])
