@@ -32,7 +32,7 @@ class CmdParser:
        "prefix": "", "lock": "", "base":"",
        "suffix": "",
        "params": {},
-       "split": False
+       "split": True
     }
 
     # Method for subsystem commands (ie. lock, set-param)
@@ -43,7 +43,7 @@ class CmdParser:
 
     # from [var, var, var] and [fixed, fixed] build [fixed, var, var, fixed, var]
     def joinp(self, vparams: list[str], fparams: dict[list]):
-        fmaxpos, vlength = max(fparams), len(vparams)
+        fmaxpos, vlength = max(fparams or [0]), len(vparams)
 
         length = fmaxpos if fmaxpos > vlength else vlength 
         result = []
@@ -60,11 +60,12 @@ class CmdParser:
     # Method for RPC commands; result is (cmd, [params]) fit for cmd(*params) call
     def parse(self, cmdin: list[str], fparams: dict[list]):
         config = CmdParser.config
-        config['base'] = cmdin[0]
+        config['base'] = cmdin[0] if not config['lock'] else ""
 
         command = f"{config['prefix']}{config['lock']}"
         command += config['base']
         command += config['suffix']
 
-        params = self.joinp(cmdin[1:] if config['split'] else [' '.join(cmdin[1:])], fparams)
+        pstart = 1 if not config['lock'] else 0
+        params = self.joinp(cmdin[pstart:] if config['split'] else [' '.join(cmdin[pstart:])], fparams)
         return command, params

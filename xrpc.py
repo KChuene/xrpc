@@ -24,8 +24,8 @@ cmdparser = CmdParser()
 
 clr = Color.color
 
-def parse_cmd(cmd_str):
-   argv = shlex.split(cmd_str)
+def parse_cmd(cmdstr):
+   argv = shlex.split(cmdstr)
    if not argv:
       return None, []
 
@@ -143,8 +143,8 @@ def apply_wrap(cmdstr : str):
 def show_help(cmd):
    help.help(cmd[0]) if len(cmd)>0 and cmd[0].strip() else help.helpall()
 
-def conf(cmd_str):
-    args = shlex.split(cmd_str)
+def conf(cmdstr):
+    args = shlex.split(cmdstr)
     config = {
         "param": set_param, "paramrst": rst_param,
         "lock": lock_call, "unlock": unlock_call,
@@ -159,54 +159,57 @@ def conf(cmd_str):
     else:
         print(f"({clr('!')}) Unrecognized subsystem command.")
 
-def configure(cmd_str):
-    args = shlex.split(cmd_str)
+def configure(cmdstr):
+    args = shlex.split(cmdstr)
     config = {
-        "paramlst": lambda args: cmdparams.list(),
-        "paramadd": lambda args: cmdparams.add(*args), 
-        "paramrst": lambda _: cmdparams.removeall(),
-        "lock": lambda args: cmdparser.reset({"lock": args}), 
-        "unlock": lambda _: cmdparser.reset({"lock": ""}),
+        "paramlst": lambda _=None: cmdparams.list(),
+        "paramadd": lambda p, n, v: cmdparams.add(p, n, v), 
+        "paramrst": lambda _=None: cmdparams.removeall(),
+        "lock": lambda v: cmdparser.reset({"lock": v}), 
+        "unlock": lambda _=None: cmdparser.reset({"lock": ""}),
         "join": lambda _=None: cmdparser.reset({"split": False}), 
         "split": lambda _=None: cmdparser.reset({"split": True}),
         "help": show_help,
-        "prefix": lambda args: cmdparser.reset({"prefix": args}),
-        "suffix": lambda args: cmdparser.reset({"suffix": args})
+        "prefix": lambda v: cmdparser.reset({"prefix": v}),
+        "suffix": lambda v: cmdparser.reset({"suffix": v})
     }
 
     isvalid = help.vdator(args[0])(args[1:])
     if not isvalid:
         print(f"({clr('!')}) Invalid command or arguments.")
     else:
-       config[args[0]](args[1:])
+       config[args[0]](*args[1:])
        
-        
-
-def exec_shell(cmd_str):
-   os.system(cmd_str)
+def shell(cmdstr):
+   os.system(cmdstr)
 
 def main():
-    hst_name = urlparse(url).netloc
-    hst_tag = f" @ {clr(hst_name, fgcolor=_.MAGENTA)}" if hst_name else ""
-    cmd_str = input(f"{clr('xrpc')}{hst_tag} ({global_call})> " if global_call else f"{clr('xrpc')}{hst_tag} > ").strip()
+    host = urlparse(url).netloc
+    htag = f" @ {clr(host, fgcolor=_.MAGENTA)}" if host else ""
+    cmdstr = input(f"{clr('xrpc')}{htag} ({global_call})> " if global_call else f"{clr('xrpc')}{htag} > ").strip()
     
-    if cmd_str.startswith("! "):
-        exec_shell(cmd_str[2:])
-    elif cmd_str.startswith(": "):
-        configure(cmd_str[2:])
-    elif cmd_str:
-        cmd, args = parse_cmd(f"{global_call} {cmd_str}" if global_call else cmd_str) # Prefix global call
-        args = join_fixed_to_varargs(args)
+    if cmdstr.startswith("! "):
+        shell(cmdstr[2:])
+
+    elif cmdstr.startswith(": "):
+        configure(cmdstr[2:])
+
+    elif cmdstr:
+        #cmd, args = parse_cmd(f"{global_call} {cmdstr}" if global_call else cmdstr) # Prefix global call
+        cmd, args = cmdparser.parse(cmdstr.split(' '), cmdparams.params)
+        #args = join_fixed_to_varargs(args)
 
         run = getattr(proxy, cmd)
         print(wrapper(run, args))
 
 sys.argv.append("-s")
 sys.argv.append("http://localhost:8000")
+arguments = sys.argv
 if __name__=="__main__":
    Color.setdefault(_.MAGENTA)
    Color.mapfg(['!', 'Error', 'i', 'xrpc'], [_.RED, _.RED, _.BLUE, _.BLUE])
-   url = readargs("-s", sys.argv)
+   url = readargs("-s", arguments)
+   dbg = readargs("-dbg", arguments, required=False, isbool=True)
 
    proxy = xc.ServerProxy(url)
    print(f"Target: {url}")
@@ -219,6 +222,6 @@ if __name__=="__main__":
         ).onerror(
             None,
             print, (f"Error: {Run.error}"),
-            debug=False
+            debug=bool(dbg)
         )
 
