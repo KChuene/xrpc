@@ -1,3 +1,6 @@
+import shlex
+from libs.auxiliary import isnumber
+
 class CmdParams:
     def __init__(self):
         self.params = {}
@@ -51,14 +54,34 @@ class CmdParser:
         length = fmaxpos if fmaxpos > vlength else vlength 
         result = []
         for elem in range(1, length + 1):
-            if elem in fparams:
-                result.append(fparams[elem][1])
-
-            elif elem <= vlength:
-                result.append(vparams[elem - 1])
-            else: 
+            fflag, vflag = elem in fparams, elem <= vlength
+            
+            if fflag: result.append(fparams[elem][1])
+            if vflag: result.append(vparams[elem - 1])
+            
+            if not (fflag or vflag): 
                 result.append("")                
         return result
+    
+    # Type converter
+    def ctype(self, svalue: str):
+        if svalue.isnumeric(): return int(svalue)
+        elif isnumber(svalue, allow_negative=True, intonly=True): return int(svalue)
+        elif isnumber(svalue): return float(svalue)
+        elif svalue.lower() in ("true", "false"): return svalue.lower() == "true"
+        return svalue
+
+    # Read command and arguments from commandline input string
+    # making appropriate type conversions
+    def read(self, cmdstr: str):
+        config = CmdParser.config
+        if not config['split']:
+            return [cmdstr] # all strings
+        
+        return [
+            self.ctype(elem) 
+            for elem in shlex.split(cmdstr)
+        ]
 
     # Method for RPC commands; result is (cmd, [params]) fit for cmd(*params) call
     def parse(self, cmdin: list[str], fparams: dict[list]):

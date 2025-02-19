@@ -187,7 +187,7 @@ def shell(cmdstr):
 def main():
     host = urlparse(url).netloc
     htag = f" @ {clr(host, fgcolor=_.MAGENTA)}" if host else ""
-    cmdstr = input(f"{clr('xrpc')}{htag} ({global_call})> " if global_call else f"{clr('xrpc')}{htag} > ").strip()
+    cmdstr = input(f"{clr('xrpc')}{htag} ({global_call})~$ " if global_call else f"{clr('xrpc')}{htag} ~$ ").strip()
     
     if cmdstr.startswith("! "):
         shell(cmdstr[2:])
@@ -197,7 +197,8 @@ def main():
 
     elif cmdstr:
         #cmd, args = parse_cmd(f"{global_call} {cmdstr}" if global_call else cmdstr) # Prefix global call
-        cmd, args = cmdparser.parse(cmdstr.split(' '), cmdparams.params)
+        cmdlst = cmdparser.read(cmdstr)
+        cmd, args = cmdparser.parse(cmdlst, cmdparams.params)
         #args = join_fixed_to_varargs(args)
 
         run = getattr(proxy, cmd)

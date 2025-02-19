@@ -6,7 +6,7 @@ clr = Color.color
 def bye(endmsg = f"({clr('i')}) Terminating...", showusg=True):
 	print(endmsg)
 	if showusg:
-		print("\nUsage:\n\t xrpc.py -s http://server.com")
+		print("\nUsage:\n\t xrpc.py -s http://server.com [-dbg]")
           
 	sys.exit()
 
@@ -33,21 +33,22 @@ def readargs(opt : str, args : list[str], required=True, isbool : bool = False, 
 
     return valueof
 
-def isnumber(n_str):
+def isnumber(n_str:str, allow_negative=True, intonly: bool = False):
+    if intonly: return n_str.removeprefix("-").isnumeric()
+
+    dotcount = indexof = 0
     for c in n_str:
         # Allowed chars are '-' and '.' in specific positions
-        indx_of = n_str.index(c)
-        if c=="-" and indx_of!=0:
+        if c=="-":
+            if indexof!=0 or not allow_negative:
+                return False
+
+        elif c==".":
+            if indexof in (0, len(n_str)-1) or dotcount > 0:
+                return False
+            dotcount += 1
+
+        elif not c.isnumeric():
             return False
-
-        elif c=="." and (indx_of==0 or indx_of==len(n_str)-1):
-            return False
-
-        elif c=="." or c==".":
-            continue # Is exceptional char and in right pos
-
-        # Other char
-        if not c.isnumeric():
-            return False
-
+        indexof += 1
     return True
