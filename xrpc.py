@@ -205,7 +205,7 @@ def main():
         print(wrapper(run, args))
 
 sys.argv.append("-s")
-sys.argv.append("http://localhost:8000")
+sys.argv.append("https://digital.va.gov/xmlrpc.php")
 sys.argv.append("-dbg")
 arguments = sys.argv
 if __name__=="__main__":

@@ -12,6 +12,7 @@ class Run:
     def run(function, args = ()):
         try:
             Run.out = None
+            Run.error = None
             if args:
                 Run.out = function(*args)
             else:
