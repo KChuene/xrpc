@@ -89,8 +89,8 @@ class CmdParser:
         config['base'] = cmdin[0] if not config['lock'] else ""
 
         command = f"{config['prefix']}{config['lock']}"
-        command += config['base']
-        command += config['suffix']
+        command = f"{command}{config['base']}"
+        command = f"{command}{config['suffix']}"
 
         pstart = 1 if not config['lock'] else 0
         params = self.joinp(cmdin[pstart:] if config['split'] else [' '.join(cmdin[pstart:])], fparams)

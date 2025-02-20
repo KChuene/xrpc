@@ -43,7 +43,7 @@ class Color:
 
     @staticmethod
     def color(text, fgcolor : Colors = None, bgcolor : Colors = None):
-        fgcolor = fgcolor or Color.map[text] if text in Color.map else Color.fgcolor
+        fgcolor = fgcolor or (Color.map[text] if text in Color.map else Color.fgcolor)
         bgcolor = bgcolor or Color.bgcolor
 
         result = text
