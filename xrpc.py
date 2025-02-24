@@ -72,9 +72,6 @@ def main():
         run = getattr(proxy, cmd)
         print(wrapper(run, args))
 
-sys.argv.append("-s")
-sys.argv.append("http://localhost:8000")
-sys.argv.append("-dbg")
 arguments = sys.argv
 if __name__=="__main__":
    Color.setdefault(_.MAGENTA)
