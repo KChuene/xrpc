@@ -12,7 +12,7 @@ index = {
                  "Paremter to remove from set of fixed parameters.",
                 lambda args: len(args) == 1 and args[0].isnumeric()],
 
-    "paramrst": ["[<number>]", "Clear all global parameter or a specific parameter",
+    "paramrst": [None, "Clear all global parameter or a specific parameter",
                 lambda args: len(args) == 0],
 
     "lock": ["<call name>", 
@@ -35,7 +35,7 @@ index = {
     "suffix": ["<suffix_str>", "String to add as a suffix to subsequent rpc calls.",
             lambda args: len(args) == 1],
 
-    "help": [None, "Show help.", lambda args: len(args) <= 1]
+    "help": ["[<command>]", "Show help.", lambda args: len(args) <= 1]
 } 
 
 clr = Color.color

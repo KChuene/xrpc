@@ -25,12 +25,12 @@ def wrapper(func, args):
       print(f"Function: {func}")
       return func()
 
-def configure(cmdstr):
+def configure(cmdstr: str):
     args = shlex.split(cmdstr)
     config = {
         "paramlst": lambda _ = None: cmdparams.list(),
-        "paramadd": lambda p, n, v: cmdparams.add(int(p), n, v), 
-        "paramdel": lambda p: cmdparams.remove(int(p)),
+        "paramadd": lambda p, n, v: cmdparams.add(p, n, v), 
+        "paramdel": lambda p: cmdparams.remove(p),
         "paramrst": lambda _ = None: cmdparams.removeall(),
         "lock": lambda v: cmdparser.reset({"lock": v}), 
         "unlock": lambda _ = None: cmdparser.reset({"lock": ""}),
@@ -45,7 +45,8 @@ def configure(cmdstr):
     if not isvalid:
         print(f"({clr('!')}) Invalid command or arguments.")
     else:
-       config[args[0]](*args[1:])
+       cmdlst = [ctype(elem) for elem in args]
+       config[cmdlst[0]](*cmdlst[1:])
        
 def shell(cmdstr):
    os.system(cmdstr)
@@ -71,9 +72,9 @@ def main():
         run = getattr(proxy, cmd)
         print(wrapper(run, args))
 
-# sys.argv.append("-s")
-# sys.argv.append("https://digital.va.gov/xmlrpc.php")
-# sys.argv.append("-dbg")
+sys.argv.append("-s")
+sys.argv.append("http://localhost:8000")
+sys.argv.append("-dbg")
 arguments = sys.argv
 if __name__=="__main__":
    Color.setdefault(_.MAGENTA)

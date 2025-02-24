@@ -1,24 +1,26 @@
 import shlex
-from libs.auxiliary import isnumber
+from libs.auxiliary import ctype
 
 class CmdParams:
     def __init__(self):
         self.params = {}
 
-    # Bound range of pos (parameter position)
-    def inrange(self, pos: int, tbound: bool = False):
+    # Range and Presence check of pos (parameter position)
+    def inrange(self, pos: int, pcheck: bool=False):
         if pos == None or pos < 1:
             return False
         
-        return pos <= len(self.params) if tbound else True
+        return pos in self.params if pcheck else True
             
     # Add a new fixed parameter
     def add(self, pos: int, name: str, val: str):
-        if self.inrange(pos): self.params[pos or len(self.params) - 1] = [name, val]
+        if self.inrange(pos): 
+            self.params[pos] = [name, val]
 
     # Remove an set fixed parameter
     def remove(self, pos: int):
-        if self.inrange(pos, tbound=True): del self.params[pos or len(self.params) - 1]
+        if self.inrange(pos, pcheck=True): 
+            del self.params[pos]
 
     # Clear all fixed parameters
     def removeall(self):
@@ -29,8 +31,8 @@ class CmdParams:
         # 1: name = value
         keys = sorted(self.params.keys())
         print("\n".join(
-            f"{elem}: {' = '.join(self.params[elem])}" 
-            for elem in keys
+            f"{kelem}: {' = '.join([str(pelem) for pelem in self.params[kelem]])}" 
+            for kelem in keys
         ))
 
 class CmdParser:
@@ -62,14 +64,6 @@ class CmdParser:
             if not (fflag or vflag): 
                 result.append("")                
         return result
-    
-    # Type converter
-    def ctype(self, svalue: str):
-        if svalue.isnumeric(): return int(svalue)
-        elif isnumber(svalue, allow_negative=True, intonly=True): return int(svalue)
-        elif isnumber(svalue): return float(svalue)
-        elif svalue.lower() in ("true", "false"): return svalue.lower() == "true"
-        return svalue
 
     # Read command and arguments from commandline input string
     # making appropriate type conversions
@@ -79,7 +73,7 @@ class CmdParser:
             return [cmdstr] # all strings
         
         return [
-            self.ctype(elem) 
+            ctype(elem) 
             for elem in shlex.split(cmdstr)
         ]
 

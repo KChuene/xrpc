@@ -3,6 +3,7 @@ from libs.colors import Color, Colors as _
 
 clr = Color.color
 
+# Program termination function
 def bye(endmsg = f"({clr('i')}) Terminating...", showusg=True):
 	print(endmsg)
 	if showusg:
@@ -10,6 +11,7 @@ def bye(endmsg = f"({clr('i')}) Terminating...", showusg=True):
           
 	sys.exit()
 
+# Command line arguments parsing
 def readargs(opt : str, args : list[str], required=True, isbool : bool = False, isnum : bool = False):
     if not opt in args:
         if required:
@@ -33,7 +35,11 @@ def readargs(opt : str, args : list[str], required=True, isbool : bool = False, 
 
     return valueof
 
+# Numerical string (int, float, negative) check
 def isnumber(n_str:str, allow_negative=True, intonly: bool = False):
+    if not (n_str or n_str.strip()): 
+        return False 
+
     if intonly: return n_str.removeprefix("-").isnumeric()
 
     dotcount = indexof = 0
@@ -42,7 +48,6 @@ def isnumber(n_str:str, allow_negative=True, intonly: bool = False):
         if c=="-":
             if indexof!=0 or not allow_negative:
                 return False
-
         elif c==".":
             if indexof in (0, len(n_str)-1) or dotcount > 0:
                 return False
@@ -52,3 +57,11 @@ def isnumber(n_str:str, allow_negative=True, intonly: bool = False):
             return False
         indexof += 1
     return True
+
+# Type converter
+def ctype(svalue: str):
+    if svalue.isnumeric(): return int(svalue)
+    elif isnumber(svalue, allow_negative=True, intonly=True): return int(svalue)
+    elif isnumber(svalue): return float(svalue)
+    elif svalue.lower() in ("true", "false"): return svalue.lower() == "true"
+    return svalue
