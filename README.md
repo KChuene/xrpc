@@ -1,23 +1,23 @@
 # XRPC - XML Remote Procedure Call
-A wrapper script for the xmlrpc.client python module providing command-line like interaction with xml rpc servers. Inclueds some sub-commands for ease of use and 
-a lite bruteforcer for discovering rpc functions.
+A wrapper script for the xmlrpc.client python module providing command-line like interaction with xml rpc servers. Includes built in script commands to to tweak script behaviour and the ability to execute os commands.
 
 ## Structure
 - `libs`: The help module and discovery (bruteforcing) module.
-- `wordlists`: Wordlists for use in discovery, initially includes `big.txt` a randomly picked off sample.
+- `sample`: Sample XML RPC server for testing.
 
 ## Usage
 To start xrpc run the following command:
 ```
-python3 xrpc.py -host 127.0.0.1 -p 8000
+python3 xrpc.py -s http://127.0.0.1:8000 [-dbg]
 ```
 
-> **Hint:**
-> The `-host` option must be an IPv4 address, no names.
+**Options:**
+- **`-s`**: The url of the XRPC server to make calls to.
+- **`-dbg`**: Output stack trace for debugging the script.
 
 
-Procedure calls are made normally, that is the name of the procedure followed by it's parameters (space separated). But to run commands <br>
-- `: `: Colon-space, precedes commands that difined within the script, like `help` and `join`.
+Procedure calls are made normally, that is the name of the procedure followed by it's parameters (space separated). But to run script and system commands <br>
+- `: `: Colon-space, precedes commands that are difined within the script, like `help` and `join`.
 - `! `: Exclamation-space, precedes system commands to (linux, windows, etc.).
 
 ## Examples
@@ -26,34 +26,39 @@ Procedure calls are made normally, that is the name of the procedure followed by
 : help
 ```
 ```
-param    - Set a global parameter for procedure calls
-paramrst - Clear all global parameter or a specific parameter
-lock     - Useful if you don't want to specify the function to call, all the time
-unlock   - Clear the locked call
-join     - Treat input as one string (ignore spaces), usefule for locked calls that requre long strings as parameters
-split    - Undo the effect of 'join'
-disc     - Run the simple bruteforcer (error-based) to discover hidden function calls
+paramlst  - List all fixed parameters set.
+paramadd  - Set a global parameter for procedure calls
+paramdel  - Paremter to remove from set of fixed parameters.
+paramrst  - Clear all global parameter or a specific parameter
+lock      - Useful if you don't want to specify the function to call, all the time
+unlock    - Clear the locked call
+join      - Treat input as one string (ignore spaces), usefule for locked calls that requre long strings as parameters
+split     - Undo the effect of 'join'
+prefix    - String to add as a prefix to subsequent rpc calls. Useful for wordpress ('wp.') xml rpc calls.
+suffix    - String to add as a suffix to subsequent rpc calls.
+help      - Show help.
 ```
 
 **get help for specific command**
 ```
-: help disc
+: help paramadd
 ```
 ```
-Run the simple bruteforcer (error-based) to discover hidden function calls
+Set a global parameter for procedure calls
 
 Usage:
-        disc <path/to/wordlist> <delay>
+        paramadd <number> <name> <value>
 ```
 
-**run discovery module**
+**add and list fixed parameters**
 ```
-: disc wordlists/big.txt 1
+: paramadd 2 code 9952
 ```
 ```
-< Discovering wordlists\big.txt delay by 1 >
-g (6/58)
-shell (24/58)
+: paramlst
+```
+```
+2: code = 9952
 ```
 
 **run os command**
@@ -66,9 +71,9 @@ Python 3.11.9
 
 **make procudure call**
 ```
-xrpc> g
+xrpc @ localhost:8000 ~$ h john doe
 ```
 ```
-Function: <xmlrpc.client._Method object at 0x0000020AE732D6D0>
-Great day!
+Function: <xmlrpc.client._Method object at 0x000001EDFB89D150>(['john', 'doe'])
+Hello, john doe.
 ```
