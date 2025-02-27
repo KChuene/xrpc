@@ -1,6 +1,9 @@
 # XRPC - XML Remote Procedure Call
 A wrapper script for the xmlrpc.client python module providing command-line like interaction with xml rpc servers. Includes built in script commands to to tweak script behaviour and the ability to execute os commands.
 
+## Gallery
+![rpcserve](sample/images/rpcserve.py.png)
+
 ## Structure
 - `libs`: The help module and discovery (bruteforcing) module.
 - `sample`: Sample XML RPC server for testing.
