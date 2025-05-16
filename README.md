@@ -5,7 +5,7 @@ A wrapper script for the xmlrpc.client python module providing command-line like
 ![rpcserve](sample/images/rpcserve.py.png)
 
 ## Structure
-- `libs`: The help module and discovery (bruteforcing) module.
+- `libs`: The helper / custom modules.
 - `sample`: Sample XML RPC server for testing.
 
 ## Usage
